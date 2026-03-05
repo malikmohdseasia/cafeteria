@@ -1,0 +1,20 @@
+import express from "express";
+import {cancelOrderController, downloadOrdersHistory, downloadPendingOrders, getConfirmedOrders, getOrderHistory, getPendingOrders, getRecentOrdersController, updateOrderStatus } from "../controllers/order.controller.js";
+import { authGuard } from "../middlewares/auth.guard.js";
+import { roleGuard } from "../middlewares/role.guard.js";
+import { adminCheckout, checkout } from "../controllers/cart.controller.js";
+
+const router = express.Router();
+router.get("/confirmed", authGuard, roleGuard("ADMIN"), getConfirmedOrders);
+router.get("/pending", authGuard, roleGuard("ADMIN"), getPendingOrders);
+router.get("/pending/download", authGuard, roleGuard("ADMIN"), downloadPendingOrders);
+router.get("/history/download", authGuard, roleGuard("ADMIN"), downloadOrdersHistory);
+router.get("/history", authGuard, roleGuard("ADMIN"), getOrderHistory);
+router.post("/checkout", authGuard, checkout);
+router.post("/admin/checkout/:userId", authGuard, roleGuard("ADMIN"), adminCheckout);
+router.patch("/:orderId/status", authGuard, roleGuard("ADMIN"), updateOrderStatus );
+router.patch("/:orderId/cancel", authGuard, roleGuard("ADMIN"), cancelOrderController);
+router.get("/recent", authGuard, roleGuard("ADMIN"), getRecentOrdersController);
+
+
+export default router;
