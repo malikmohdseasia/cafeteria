@@ -69,7 +69,6 @@ const UserInfo = () => {
       [
         item.name,
         item.employeeId,
-        item.payment,
         item.walletBalance,
         item.date,
         item.time,
@@ -96,11 +95,10 @@ const UserInfo = () => {
             setActiveTab("users");
             setSearchTerm("");
           }}
-          className={`pb-3 text-sm font-medium ${
-            activeTab === "users"
-              ? "text-purple-600 border-b-2 border-purple-600"
-              : "text-gray-500"
-          }`}
+          className={`pb-3 text-sm font-medium ${activeTab === "users"
+            ? "text-purple-600 border-b-2 border-purple-600"
+            : "text-gray-500"
+            }`}
         >
           User List
         </button>
@@ -110,11 +108,10 @@ const UserInfo = () => {
             setActiveTab("wallet");
             setSearchTerm("");
           }}
-          className={`pb-3 text-sm font-medium ${
-            activeTab === "wallet"
-              ? "text-purple-600 border-b-2 border-purple-600"
-              : "text-gray-500"
-          }`}
+          className={`pb-3 text-sm font-medium ${activeTab === "wallet"
+            ? "text-purple-600 border-b-2 border-purple-600"
+            : "text-gray-500"
+            }`}
         >
           Wallet History
         </button>
@@ -215,7 +212,6 @@ const UserInfo = () => {
                   <tr className="text-gray-600">
                     <th className="py-3">Employee Name</th>
                     <th>Employee Id</th>
-                    <th>Amount</th>
                     <th>Wallet Balance</th>
                     <th>Date</th>
                     <th>Time</th>
@@ -223,7 +219,6 @@ const UserInfo = () => {
                 </thead>
 
                 <tbody>
-
                   {searchData.length > 0 ? (
                     searchData.map((item: any, index: number) => (
                       <tr
@@ -234,18 +229,6 @@ const UserInfo = () => {
                         <td className="py-3">{item.user?.name}</td>
 
                         <td>{item.user?.email}</td>
-
-                        <td
-                          className={`font-medium ${
-                            item.type === "credit"
-                              ? "text-green-600"
-                              : item.type === "debit"
-                              ? "text-red-600"
-                              : "text-orange-500"
-                          }`}
-                        >
-                          ₹{item.amount}
-                        </td>
 
                         <td>₹{item.subtotal}</td>
 
@@ -261,12 +244,11 @@ const UserInfo = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="text-center py-6 text-gray-400">
+                      <td colSpan={5} className="text-center py-6 text-gray-400">
                         No matching records found
                       </td>
                     </tr>
                   )}
-
                 </tbody>
 
               </table>
