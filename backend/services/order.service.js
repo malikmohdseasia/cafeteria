@@ -1,6 +1,8 @@
 
 import Cart from "../ models/cart.model.js";
+import WalletHistory from "../ models/walletHistory.model.js";
 import * as orderRepo from "../repositories/order.repository.js";
+import * as userRepo from "../repositories/user.repository.js";
 import { MESSAGES } from "../constants/messages.js";
 import mongoose from "mongoose";
 
@@ -277,16 +279,15 @@ export const updateOrderStatus = async (orderId, status) => {
 };
 
 
+
+
 export const cancelOrder = async (orderId) => {
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
     throw new Error("Invalid order id");
   }
 
   const order = await orderRepo.findById(orderId);
-
-  if (!order) {
-    throw new Error("Order not found");
-  }
+  if (!order) throw new Error("Order not found");
 
   if (order.status === "DELIVERED") {
     throw new Error("Delivered orders cannot be cancelled");
@@ -296,11 +297,38 @@ export const cancelOrder = async (orderId) => {
     throw new Error("Order already cancelled");
   }
 
+  const wallet = await userRepo.getWallet(order.user);
+  if (!wallet) throw new Error("Wallet not found");
+
+  // Only refund paid amount
+  if (order.paymentStatus === "PAID" || order.paymentStatus === "PENDING") {
+    wallet.balance += order.totalAmount;
+
+    // Create wallet history record
+    await WalletHistory.create({
+      user: order.user,
+      type: "credit",
+      amount: order.totalAmount,
+      subtotal: wallet.balance, // balance after refund
+      description: `Refund for cancelled order ${order._id}`,
+    });
+
+    await wallet.save();
+
+    // Update user's wallet fields in User model
+    await userRepo.updateUserWalletFields(
+      order.user,
+      wallet.balance,
+      wallet.pending
+    );
+  }
+
+  // Update order status
   const updatedOrder = await orderRepo.cancelOrderById(orderId);
 
   return {
     success: true,
-    message: "Order cancelled successfully",
+    message: "Order cancelled and amount refunded",
     data: updatedOrder,
   };
 };

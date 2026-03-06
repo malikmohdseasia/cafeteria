@@ -1,119 +1,89 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useState } from 'react'
+import { useOrderStore } from '../../store/orderStore'
 import { Bell } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
-interface NotificationType {
-  id: number;
+interface Notification {
+  _id: string;
   title: string;
   message: string;
-  time: string;
-  read: boolean;
+  createdAt: string;
+  isRead: boolean;
 }
 
-const Notification = () => {
-  const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-  const [notifications, setNotifications] = useState<NotificationType[]>([
-    {
-      id: 1,
-      title: "New Order Received",
-      message: "You received a new order from Danish.",
-      time: "2 min ago",
-      read: false,
-    },
-    {
-      id: 2,
-      title: "Payment Successful",
-      message: "Payment of ₹499 completed successfully.",
-      time: "10 min ago",
-      read: false,
-    },
-    {
-      id: 3,
-      title: "Order Delivered",
-      message: "Order #1234 has been delivered.",
-      time: "1 hour ago",
-      read: true,
-    },
-  ]);
+const Notification = () => {
+
+  const { fetchNotifications, notifications, markNotificationsRead } = useOrderStore();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    fetchNotifications();
   }, []);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-full hover:bg-gray-100 transition cursor-pointer"
-      >
-        <Bell className="text-gray-700" />
+    <div className="relative">
 
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+      <button
+        onClick={() => {
+          setOpen(!open);
+          markNotificationsRead();
+        }}
+        className="relative p-2 rounded-full hover:bg-gray-100"
+      >
+        <Bell size={22} className="text-red-500" />
+
+        {unreadCount > 0 && !open && (
+          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">
             {unreadCount}
           </span>
         )}
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-3 w-80 bg-white shadow-2xl rounded-2xl z-50 "
-          >
-            <div className="p-4 border-b border-green-300">
-              <h3 className="font-semibold text-gray-700">
-                Notifications
-              </h3>
-            </div>
+      {open && (
+        <div className="absolute right-0 mt-3 w-80 bg-white shadow-lg rounded-xl z-50">
 
-            <div className="max-h-80 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="p-6 text-center text-gray-500 text-sm">
-                  You don’t have any notifications
+          <div className="p-3 font-semibold border-b border-gray-300">
+            Notifications
+          </div>
+
+          <div className="max-h-80 overflow-y-auto">
+
+            {notifications.length === 0 ? (
+              <p className="p-4 text-gray-500 text-center">
+                No notifications
+              </p>
+            ) : (
+
+              notifications.map((n: any) => (
+                <div
+                  key={n._id}
+                  className="p-3 border-b border-gray-300 hover:bg-gray-50 cursor-pointer"
+                >
+
+                  <p className="font-semibold text-sm">
+                    {n.title}
+                  </p>
+
+                  <p className="text-xs text-gray-600">
+                    {n.message}
+                  </p>
+
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(n.createdAt).toLocaleString()}
+                  </p>
+
                 </div>
-              ) : (
-                notifications.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`p-4 border-b border-green-300 hover:bg-gray-50 transition cursor-pointer ${
-                      !item.read ? "bg-blue-50" : ""
-                    }`}
-                  >
-                    <h4 className="text-sm font-semibold text-gray-800">
-                      {item.title}
-                    </h4>
-                    <p className="text-xs text-gray-600 mt-1">
-                      {item.message}
-                    </p>
-                    <span className="text-xs text-gray-400 block mt-2">
-                      {item.time}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              ))
+
+            )}
+
+          </div>
+
+        </div>
+      )}
+
     </div>
   );
 };

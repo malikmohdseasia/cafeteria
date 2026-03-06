@@ -5,6 +5,7 @@ import categoryRoutes from "./routes/category.routes.js";
 import menuRoutes from "./routes/menu.routes.js";
 import walletRoutes from "./routes/wallet.routes.js";
 import orderRoutes from "./routes/order.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
@@ -21,6 +22,7 @@ app.use("/api/category", categoryRoutes);
 app.use("/api/food", foodRoutes);
 app.use("/api/menu", menuRoutes)
 app.use("/api/wallet", walletRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);

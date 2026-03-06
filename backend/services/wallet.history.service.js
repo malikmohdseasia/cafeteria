@@ -7,7 +7,6 @@ export const getWalletHistoryWithWallet = async () => {
 
   const formatted = await Promise.all(
     history.map(async (item) => {
-      // 🔴 SAFETY CHECK
       if (!item.user) return null;
 
       const wallet = await Wallet.findOne({ user: item.user._id });
@@ -33,6 +32,10 @@ export const getWalletHistoryWithWallet = async () => {
     })
   );
 
-  // remove null entries
   return formatted.filter(item => item !== null);
+};
+
+
+export const searchWalletHistoryService = async (search) => {
+  return await walletHistoryRepo.searchWalletHistory(search);
 };

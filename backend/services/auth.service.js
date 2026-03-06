@@ -6,7 +6,7 @@ import { sendEmail } from "../utils/sendEmail.js";
 
 
 export const registerUser = async (name, email) => {
-  if (!name || !email ) {
+  if (!name || !email) {
     throw new Error("Name & email  are required");
   }
 
@@ -20,7 +20,7 @@ export const registerUser = async (name, email) => {
   const user = await userRepo.createUser({
     name,
     email,
-    role: ROLES.USER, 
+    role: ROLES.USER,
   });
 
   return {
@@ -30,7 +30,6 @@ export const registerUser = async (name, email) => {
     role: user.role,
   };
 };
-
 
 export const sendOtp = async (email) => {
   if (!email) {
@@ -44,14 +43,19 @@ export const sendOtp = async (email) => {
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
   await userRepo.saveOtp(email, otp, expiresAt);
 
-  console.log(`OTP for ${email}: ${otp}`);
+  await sendEmail(
+    email,
+    "Your Login OTP",
+    `Your OTP is ${otp}. It will expire in 5 minutes.`
+  );
 };
 
-export const verifyOtp = async ( email, otp) => {
+export const verifyOtp = async (email, otp) => {
   if (!email || !otp) {
     throw new Error("Email and OTP are required");
   }
@@ -131,4 +135,17 @@ export const getUsersWithPendingPayment = async () => {
     count: users.length,
     data: users,
   };
+};
+
+
+
+
+export const getAllUsers = async () => {
+  const users = await userRepo.getAllUsers();
+
+  if (!users || users.length === 0) {
+    throw new Error("No users found");
+  }
+
+  return users;
 };

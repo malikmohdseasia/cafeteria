@@ -45,3 +45,25 @@ export const getWalletHistory = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+export const searchWalletHistoryController = async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    const data = await walletService.searchWalletHistoryService(search);
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

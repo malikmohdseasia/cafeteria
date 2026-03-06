@@ -10,7 +10,7 @@ router.get("/pending", authGuard, roleGuard("ADMIN"), getPendingOrders);
 router.get("/pending/download", authGuard, roleGuard("ADMIN"), downloadPendingOrders);
 router.get("/history/download", authGuard, roleGuard("ADMIN"), downloadOrdersHistory);
 router.get("/history", authGuard, roleGuard("ADMIN"), getOrderHistory);
-router.post("/checkout", authGuard, checkout);
+router.post("/checkout", authGuard,  checkout);
 router.post("/admin/checkout/:userId", authGuard, roleGuard("ADMIN"), adminCheckout);
 router.patch("/:orderId/status", authGuard, roleGuard("ADMIN"), updateOrderStatus );
 router.patch("/:orderId/cancel", authGuard, roleGuard("ADMIN"), cancelOrderController);

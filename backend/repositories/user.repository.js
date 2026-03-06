@@ -101,7 +101,16 @@ export const updateUserWalletFields = (userId, balance, pending) =>
   );
 
 
-  export const getUsersWithPendingPayment = () =>
+export const getUsersWithPendingPayment = () =>
   User.find({ pending: { $gt: 0 } })
     .select("-otp -otpExpiresAt")
     .sort({ pending: -1 });
+
+
+
+export const getAllUsers = () => {
+  return User.find({ role: "USER" })
+    .select("-otp -otpExpiresAt")
+    .sort({ createdAt: -1 });
+};
+

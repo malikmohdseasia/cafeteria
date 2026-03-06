@@ -7,6 +7,7 @@ import * as userRepo from "../repositories/user.repository.js";
 import * as walletHistoryRepo from "../repositories/wallet.history.repositry.js";
 import * as orderRepo from "../repositories/order.repository.js";
 import userModel from "../ models/user.model.js";
+import { createNotificationService } from "./notification.service.js";
 
 
 
@@ -50,7 +51,7 @@ export const addToCart = async (userId, foodId) => {
   if (exists) throw new Error("Item already in cart");
   cart.items.push({
     food: foodId,
-    foodName: food.name,         
+    foodName: food.name,
     quantity: 1,
     addedAt: new Date(),
     category: food.category?._id,
@@ -75,7 +76,7 @@ export const getCart = async (userId) => {
     id: item.food._id,
     name: item.food.name,
     price: item.food.price,
-    subtotal: item.food.price * item.quantity, 
+    subtotal: item.food.price * item.quantity,
   }));
 
   const total = items.reduce(
@@ -189,35 +190,41 @@ export const checkoutCart = async (userId) => {
   }
 
   const order = await orderRepo.createOrder({
-  user: userId,
-  items: orderItems,
-  totalAmount: total,
-  paymentStatus,
-  status: "PENDING", 
-});
-
-cart.items = [];
-await cartRepo.saveCart(cart);
-
-await wallet.save();
-
-await userRepo.updateUserWalletFields(
-  userId,
-  wallet.balance,
-  wallet.pending
-);
-
-return {
-  success: true,
-  message: "Checkout complete",
-  data: {
-    orderId: order._id,
-    total,
+    user: userId,
+    items: orderItems,
+    totalAmount: total,
     paymentStatus,
-    walletBalance: wallet.balance,
-    pending: wallet.pending,
-  },
-};
+    status: "PENDING",
+  });
+
+  await createNotificationService({
+    title: "New Order Received",
+    message: `New order placed worth ₹${total}`,
+    type: "ORDER",
+    orderId: order._id
+  });
+  cart.items = [];
+  await cartRepo.saveCart(cart);
+
+  await wallet.save();
+
+  await userRepo.updateUserWalletFields(
+    userId,
+    wallet.balance,
+    wallet.pending
+  );
+
+  return {
+    success: true,
+    message: "Checkout complete",
+    data: {
+      orderId: order._id,
+      total,
+      paymentStatus,
+      walletBalance: wallet.balance,
+      pending: wallet.pending,
+    },
+  };
 };
 
 
@@ -235,19 +242,19 @@ export const checkoutCartByAdmin = async (userId) => {
   let total = 0;
 
   const orderItems = cart.items.map(item => {
-  if (!item.food) throw new Error("Food item not found in cart");
+    if (!item.food) throw new Error("Food item not found in cart");
 
-  total += item.food.price * item.quantity;
+    total += item.food.price * item.quantity;
 
-  return {
-    product: item.food._id,
-    food: item.food.name,
-    category: item.category || item.food.category?._id || null,
-    categoryName: item.categoryName || item.food.category?.name || "Uncategorized",
-    quantity: item.quantity,
-    price: item.food.price,
-  };
-});
+    return {
+      product: item.food._id,
+      food: item.food.name,
+      category: item.category || item.food.category?._id || null,
+      categoryName: item.categoryName || item.food.category?.name || "Uncategorized",
+      quantity: item.quantity,
+      price: item.food.price,
+    };
+  });
 
   let paymentStatus = "PAID";
 

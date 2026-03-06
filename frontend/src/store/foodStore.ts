@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { fetchFoodApi, createFoodApi } from "../api/foodApi";
+import { fetchFoodApi, createFoodApi, deleteFoodApi, UpdateFoodApi } from "../api/foodApi";
 
 interface Food {
   _id: string;
@@ -15,6 +15,8 @@ interface FoodState {
 
   fetchFoods: () => Promise<void>;
   createFood: (name: string, price: number) => Promise<void>;
+  deleteFood: (id: string) => Promise<void>;
+  updateFood: (id: string, name: string, price: number) => Promise<void>;
   clearFoods: () => void;
 }
 
@@ -49,10 +51,48 @@ export const useFoodStore = create<FoodState>((set) => ({
       console.log(res);
 
       set((state) => ({
-        foods: [...state.foods, res.data.data], 
+        foods: [...state.foods, res.data.data],
         isLoading: false,
       }));
 
+    } catch (err: any) {
+      set({
+        error: err.response?.data?.message || err.message,
+        isLoading: false,
+      });
+    }
+  },
+
+  deleteFood: async (id) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      await deleteFoodApi(id);
+
+      set((state) => ({
+        foods: state.foods.filter((food) => food._id !== id),
+        isLoading: false,
+      }));
+    } catch (err: any) {
+      set({
+        error: err.response?.data?.message || err.message,
+        isLoading: false,
+      });
+    }
+  },
+
+  updateFood: async (id, name, price) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const res = await UpdateFoodApi(id, { name, price });
+
+      set((state) => ({
+        foods: state.foods.map((food) =>
+          food._id === id ? res.data.data : food
+        ),
+        isLoading: false,
+      }));
     } catch (err: any) {
       set({
         error: err.response?.data?.message || err.message,

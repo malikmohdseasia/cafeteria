@@ -7,6 +7,8 @@ import ErrorBoundary from "./components/common/ErrorBoundary"
 import withErrorBoundary from "./components/common/withErrorBoundry";
 import {ToastContainer} from "react-toastify";
 import Modal from "react-modal";
+import Foods from "./components/Pages/Foods"
+import AddMoney from "./components/Pages/AddMoney"
 
 Modal.setAppElement("#root");
 
@@ -39,7 +41,9 @@ const App = () => {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/user-info" element={<UserInfo />} />
+              <Route path="/foods" element={<Foods />} />
               <Route path="/menu" element={<Menu />} />
+              <Route path="/add-money" element={<AddMoney />} />
               <Route path="*" element={<NotFound />} />
             </Route>
 

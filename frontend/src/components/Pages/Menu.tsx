@@ -30,10 +30,6 @@ const Menu = () => {
   const [editItemData, setEditItemData] = useState<{ categoryId: string; foodId: string; name: string; price: number } | null>(null);
 
   const { categories, fetchCategories } = useCategoryStore();
-  const { createFood } = useFoodStore();
-
-
-
 
   useEffect(() => {
     fetchFoods();

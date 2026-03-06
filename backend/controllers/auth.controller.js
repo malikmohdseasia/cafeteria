@@ -23,9 +23,9 @@ export const registerUser = async (req, res, next) => {
 
 export const sendOtp = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email } = req.body;
 
-    await authService.sendOtp(email, password);
+    await authService.sendOtp(email);
 
     res.status(200).json({
       success: true,
@@ -71,5 +71,20 @@ export const getUsersWithPendingPayment = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+
+
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await authService.getAllUsers();
+
+    res.status(200).json({
+      success: true,
+      data: users,
+    });
+  } catch (err) {
+    next(err);
   }
 };

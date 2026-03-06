@@ -15,3 +15,9 @@ export const cancelOrderApi = (orderId: any) =>
 
 export const fetchRecentOrdersApi = () =>
   axiosInstance.get("orders/recent").then(res => res.data);
+
+export const fetchNotificationsApi = ()=>
+  axiosInstance.get("/notifications").then(res=>res.data);
+
+export const markNotificationsReadApi = () =>
+  axiosInstance.patch("/notifications/read").then(res=>res.data);

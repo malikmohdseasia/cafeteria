@@ -1,5 +1,13 @@
 import { create } from "zustand";
-import { cancelOrderApi, fetchOrdersApi, fetchPendingOrdersApi, fetchRecentOrdersApi, updateStatusOrder } from "../api/OrderApi";
+import {
+  cancelOrderApi,
+  fetchOrdersApi,
+  fetchPendingOrdersApi,
+  fetchRecentOrdersApi,
+  updateStatusOrder,
+  fetchNotificationsApi,
+  markNotificationsReadApi
+} from "../api/OrderApi";
 
 interface Order {
   date: string;
@@ -10,24 +18,38 @@ interface Order {
   totalAmount: number;
 }
 
+interface Notification {
+  _id: string;
+  title: string;
+  message: string;
+  createdAt: string;
+}
+
 interface OrderState {
-  recentOrders:[];
+  recentOrders: [];
   orders: Order[];
   pendingOrders: Order[];
+  notifications: Notification[];
+
   isLoading: boolean;
   error: string | null;
 
   fetchOrders: () => Promise<void>;
   fetchRecentOrders: () => Promise<void>;
   fetchPendingOrders: () => Promise<void>;
+  fetchNotifications: () => Promise<void>;
+  markNotificationsRead: () => Promise<void>;
   clearOrders: () => void;
-  updateOrderStatus:(id: string, status: string)=>void;
+
+  updateOrderStatus: (id: string, status: string) => void;
 }
 
 export const useOrderStore = create<OrderState>((set) => ({
-  recentOrders:[],
+  recentOrders: [],
   orders: [],
   pendingOrders: [],
+  notifications: [],
+
   isLoading: false,
   error: null,
 
@@ -35,7 +57,7 @@ export const useOrderStore = create<OrderState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await fetchOrdersApi();
-      set({ orders: data.orders|| [], isLoading: false });
+      set({ orders: data.orders || [], isLoading: false });
     } catch (err: any) {
       set({
         error: err.response?.data?.message || err.message,
@@ -48,7 +70,6 @@ export const useOrderStore = create<OrderState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await fetchPendingOrdersApi();
-
       set({ pendingOrders: data.data || [], isLoading: false });
     } catch (err: any) {
       set({
@@ -71,31 +92,53 @@ export const useOrderStore = create<OrderState>((set) => ({
     }
   },
 
+  fetchNotifications: async () => {
+    try {
+      const res = await fetchNotificationsApi();
+
+      set({
+        notifications: res.data || []
+      });
+
+    } catch (err: any) {
+      set({
+        error: err.response?.data?.message || err.message
+      });
+    }
+  },
+
   clearOrders: () => {
     set({ orders: [], pendingOrders: [] });
   },
 
-
   cancelOrder: async (orderId: string) => {
-  await cancelOrderApi(orderId);
+    await cancelOrderApi(orderId);
 
-  set((state: any) => ({
-    orders: state.orders.filter(
-      (order: any) => order._id !== orderId
-    ),
-  }));
-},
-
-updateOrderStatus: async (id: string, status: string) => {
-    await updateStatusOrder(id, status);
-    set((state) => ({
-      pendingOrders: state.pendingOrders.filter(
-        (order:any) => order._id !== id
+    set((state: any) => ({
+      orders: state.orders.filter(
+        (order: any) => order._id !== orderId
       ),
     }));
   },
 
+  updateOrderStatus: async (id: string, status: string) => {
+    await updateStatusOrder(id, status);
 
+    set((state) => ({
+      pendingOrders: state.pendingOrders.filter(
+        (order: any) => order._id !== id
+      ),
+    }));
+  },
+
+  markNotificationsRead: async () => {
+    await markNotificationsReadApi();
+
+    set((state) => ({
+      notifications: state.notifications.map((n: any) => ({
+        ...n,
+        isRead: true,
+      })),
+    }));
+  },
 }));
-
-
