@@ -1,9 +1,17 @@
 import { DailyMenu } from "../ models/daily.menu.js";
 import Food from "../ models/food.model.js";
 
-export const getLatestDailyMenu = async () => {
-  return DailyMenu.findOne()
-    .sort({ createdAt: -1 })
+
+export const getTodayDailyMenu = async () => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+
+  return DailyMenu.findOne({
+    createdAt: { $gte: start, $lte: end },
+  })
     .populate("items.category")
     .populate("items.food");
 };

@@ -11,3 +11,9 @@ export const updateById = (id, data) =>
 
 export const deleteById = (id) =>
   Food.findByIdAndDelete(id);
+
+export const searchFoodByNameRepo = async (name) => {
+  return await Food.find({
+    name: { $regex: name, $options: "i" } 
+  }).populate("category", "name");
+};

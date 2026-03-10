@@ -107,13 +107,10 @@ export const getPendingOrdersService = async (range = "today") => {
   if (range === "today") {
     startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   } else {
-    const days = parseInt(range); 
-
-    if (!isNaN(days)) {
-      startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-    } else {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    }
+    const days = parseInt(range);
+    startDate = !isNaN(days)
+      ? new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+      : new Date(now.getFullYear(), now.getMonth(), now.getDate());
   }
 
   const startUTC = new Date(startDate);
@@ -122,7 +119,9 @@ export const getPendingOrdersService = async (range = "today") => {
   const endUTC = new Date(now);
   endUTC.setHours(23, 59, 59, 999);
 
-  return await orderRepo.fetchPendingOrders(startUTC, endUTC);
+  const orders = await orderRepo.fetchPendingOrders(startUTC, endUTC);
+
+  return orders;
 };
 
 
@@ -171,53 +170,49 @@ export const getRevenueStatsService = async (range = "today") => {
 
 
 export const getOrderHistoryService = async (queryParams) => {
-  const {
-    page = 1,
-    limit = 10,
-    paymentStatus,
-    status,
-    range,
-  } = queryParams;
+  const { page, limit, paymentStatus, status, range } = queryParams;
 
   let startDate = null;
   let endDate = null;
 
   if (range) {
     const now = new Date();
+
     endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
 
     if (range === "today") {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    } else {
-      const days = parseInt(range);
-      if (!isNaN(days)) {
-        startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-      }
+    } 
+    else if (range === "3days") {
+      startDate = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    } 
+    else if (range === "7days") {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } 
+    else if (range === "30days") {
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
 
     if (startDate) startDate.setHours(0, 0, 0, 0);
   }
 
-const result = await orderRepo.fetchAllOrders({
-  page: Number(page),
-  limit: Number(limit),
-  paymentStatus,
-  status: ["CONFIRMED", "CANCELLED"], 
-  startDate,
-  endDate,
-});
-
-
+  const result = await orderRepo.fetchAllOrders({
+    page: page ? Number(page) : null,
+    limit: limit ? Number(limit) : null,
+    paymentStatus,
+    status: ["CONFIRMED", "CANCELLED"],
+    startDate,
+    endDate,
+  });
 
   return {
-  orders: result.orders, // return full orders
-  total: result.total,
-  page: result.page,
-  totalPages: result.totalPages,
+    orders: result.orders,
+    total: result.total,
+    page: result.page,
+    totalPages: result.totalPages,
+  };
 };
-};
-
 
 
 export const getConfirmedOrdersService = async (range = "today") => {
@@ -251,33 +246,29 @@ const allowedStatuses = [
   "CANCELLED",
 ];
 
-export const updateOrderStatus = async (orderId, status) => {
-  if (!mongoose.Types.ObjectId.isValid(orderId)) {
-    throw new Error("Invalid order id");
+export const updateOrderStatus = async (userId, status) => {
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new Error("Invalid user id");
   }
 
   if (!allowedStatuses.includes(status)) {
     throw new Error("Invalid status");
   }
 
-  const order = await orderRepo.findById(orderId);
-  if (!order) {
-    throw new Error("Order not found");
+  const orders = await orderRepo.findPendingOrdersByUser(userId);
+
+  if (!orders.length) {
+    throw new Error("No pending orders found for this user");
   }
 
-  if (["DELIVERED", "CANCELLED"].includes(order.status)) {
-    throw new Error("Order already completed");
-  }
-
-  const updatedOrder = await orderRepo.updateStatus(orderId, status);
+  const updatedOrders = await orderRepo.updateStatusByUser(userId, status);
 
   return {
     success: true,
-    message: "Order status updated successfully",
-    data: updatedOrder,
+    message: "Orders updated successfully",
+    updatedCount: updatedOrders.modifiedCount,
   };
 };
-
 
 
 
@@ -338,4 +329,67 @@ export const fetchRecentOrders = async () => {
   const orders = await orderRepo.getRecentOrders();
 
   return orders;
+};
+
+
+export const getOrdersByStatusService = async (status) => {
+  const validStatus = ["CANCELLED", "CONFIRMED"];
+
+  if (!validStatus.includes(status)) {
+    throw new Error("Invalid status");
+  }
+
+  const orders = await orderRepo.getOrdersByStatusRepo(status);
+
+  return orders;
+};
+
+
+
+export const searchOrdersService = async (query) => {
+
+  if (!query) {
+    throw new Error("Search query is required");
+  }
+
+  const orders = await orderRepo.searchOrdersRepo(query);
+
+  return orders;
+};
+
+
+
+
+export const searchPendingOrdersService = async (range = "today", search = "") => {
+  const now = new Date();
+  let startDate;
+
+  if (range === "today") {
+    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  } else {
+    const days = parseInt(range);
+    startDate = !isNaN(days)
+      ? new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+      : new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  const startUTC = new Date(startDate);
+  startUTC.setHours(0, 0, 0, 0);
+
+  const endUTC = new Date(now);
+  endUTC.setHours(23, 59, 59, 999);
+
+  const orders = await orderRepo.searchPendingOrders(startUTC, endUTC, search);
+
+  if (!orders.length) return [];
+
+  const totalAmount = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+  return [
+    {
+      orderCount: orders.length,
+      totalAmount,
+      orders,
+    },
+  ];
 };

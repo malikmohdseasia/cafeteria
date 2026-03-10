@@ -45,3 +45,14 @@ export const deleteFood = async (id) => {
   }
   return food;
 };
+
+
+export const searchFoodByNameService = async (name) => {
+  if (!name) {
+    throw new Error("Food name is required");
+  }
+
+  const foods = await foodRepo.searchFoodByNameRepo(name);
+
+  return foods;
+};

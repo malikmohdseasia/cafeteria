@@ -1,14 +1,15 @@
 import app from "./app.js";
 import connectDB from "./config/db.js";
 import { ENV } from "./config/env.js";
-import { startMenuCron } from "./cron/dailyMenuCron.js";
-
+import { createServer } from "http";
+import { initSocket } from "./socket/socket.js";
 
 connectDB();
 
-startMenuCron();
+const server = createServer(app);
 
+initSocket(server);
 
-app.listen(ENV.PORT, () => {
+server.listen(ENV.PORT, () => {
   console.log(`Server running on port ${ENV.PORT}`);
 });

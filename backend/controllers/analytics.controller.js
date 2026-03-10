@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from "../constants/httpStatus.js";
 import { getAnalyticsService } from "../services/analytics.service.js";
 import { exportAnalyticsService } from "../services/export.service.js";
 
@@ -8,7 +9,7 @@ export const getAnalyticsController = async (req, res) => {
 
     const data = await getAnalyticsService(type, range);
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       type,
       range,
@@ -16,7 +17,7 @@ export const getAnalyticsController = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: error.message
     });

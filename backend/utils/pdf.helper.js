@@ -36,7 +36,7 @@ export const generatePDF = async (type, range, data) => {
     const rowHeight = 25;
 
     const columnWidths = {
-      Date: 60,
+      Date: 70,
       OrderId: 160,
       EmployeeName: 100,
       EmployeeEmail: 120,

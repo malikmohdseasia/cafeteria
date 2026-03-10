@@ -1,26 +1,28 @@
 import Order from "../ models/order.model.js";
 
-export const fetchTopSellingByCategory = async (matchFilter) => {
+export const fetchTopSellingByCategory = async () => {
   return Order.aggregate([
-    { $match: matchFilter },
+    {
+      $match: {
+        status: "CONFIRMED",
+      },
+    },
 
     { $unwind: "$items" },
 
     {
       $group: {
-        _id: {
-          productId: "$items.product",
-          categoryName: "$items.categoryName",
-        },
+        _id: "$items.product",
         totalSold: { $sum: "$items.quantity" },
         price: { $first: "$items.price" },
+        category: { $first: "$items.categoryName" },
       },
     },
 
     {
       $lookup: {
         from: "foods",
-        localField: "_id.productId",
+        localField: "_id",
         foreignField: "_id",
         as: "foodDetails",
       },
@@ -31,8 +33,9 @@ export const fetchTopSellingByCategory = async (matchFilter) => {
     {
       $project: {
         _id: 0,
-        category: { $ifNull: ["$_id.categoryName", "Uncategorized"] },
+        foodId: "$foodDetails._id",
         foodName: "$foodDetails.name",
+        category: { $ifNull: ["$category", "Uncategorized"] },
         price: 1,
         totalSold: 1,
       },
@@ -44,9 +47,9 @@ export const fetchTopSellingByCategory = async (matchFilter) => {
       $setWindowFields: {
         sortBy: { totalSold: -1 },
         output: {
-          rank: { $rank: {} }
-        }
-      }
-    }
+          rank: { $rank: {} },
+        },
+      },
+    },
   ]);
 };

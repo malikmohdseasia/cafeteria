@@ -8,6 +8,7 @@ import * as walletHistoryRepo from "../repositories/wallet.history.repositry.js"
 import * as orderRepo from "../repositories/order.repository.js";
 import userModel from "../ models/user.model.js";
 import { createNotificationService } from "./notification.service.js";
+import { getIO } from "../socket/socket.js";
 
 
 
@@ -189,20 +190,36 @@ export const checkoutCart = async (userId) => {
     });
   }
 
-  const order = await orderRepo.createOrder({
-    user: userId,
-    items: orderItems,
-    totalAmount: total,
-    paymentStatus,
-    status: "PENDING",
-  });
+  const orders = [];
 
-  await createNotificationService({
-    title: "New Order Received",
-    message: `New order placed worth ₹${total}`,
-    type: "ORDER",
-    orderId: order._id
-  });
+  for (const item of orderItems) {
+    const order = await orderRepo.createOrder({
+      user: userId,
+      items: [item],
+      totalAmount: item.price * item.quantity,
+      paymentStatus,
+      status: "PENDING",
+    });
+
+    orders.push(order);
+  }
+
+  for (const order of orders) {
+
+    await createNotificationService({
+      title: "New Order Received",
+      message: `New order placed worth ₹${order.totalAmount}`,
+      type: "ORDER",
+      orderId: order._id
+    });
+
+    const io = getIO();
+
+    io.emit("newOrder", {
+      orderId: order._id,
+      totalAmount: order.totalAmount,
+    });
+  }
   cart.items = [];
   await cartRepo.saveCart(cart);
 
@@ -218,7 +235,7 @@ export const checkoutCart = async (userId) => {
     success: true,
     message: "Checkout complete",
     data: {
-      orderId: order._id,
+      orderIds: orders.map(o => o._id),
       total,
       paymentStatus,
       walletBalance: wallet.balance,

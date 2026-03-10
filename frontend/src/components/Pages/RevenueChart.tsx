@@ -11,7 +11,6 @@ const RevenueChart = () => {
     fetchRevenueData(range);
   }, [range]);
 
-  // convert API data
   const categories =
     revenueData?.map((item: any) =>
       new Date(item.date).toLocaleDateString("en-IN", {
@@ -83,19 +82,32 @@ const RevenueChart = () => {
 
         <div className="space-x-2">
           <button
+            onClick={() => setRange("today")}
+            className={`px-2 py-1 rounded-md cursor-pointer ${range === "today" ? "bg-purple-600 text-white" : "bg-gray-200"
+              }`}
+          >
+            Today
+          </button>
+
+          <button
+            onClick={() => setRange("3")}
+            className={`px-2 py-1 rounded-md cursor-pointer ${range === "3" ? "bg-purple-600 text-white" : "bg-gray-200"
+              }`}
+          >
+            3 Days
+          </button>
+          <button
             onClick={() => setRange("7")}
-            className={`px-4 py-1 rounded-md ${
-              range === "7" ? "bg-purple-600 text-white" : "bg-gray-200"
-            }`}
+            className={`px-2 py-1 rounded-md cursor-pointer ${range === "7" ? "bg-purple-600 text-white" : "bg-gray-200"
+              }`}
           >
             Week
           </button>
 
           <button
             onClick={() => setRange("30")}
-            className={`px-4 py-1 rounded-md ${
-              range === "30" ? "bg-purple-600 text-white" : "bg-gray-200"
-            }`}
+            className={`px-2 py-1 rounded-md cursor-pointer ${range === "30" ? "bg-purple-600 text-white" : "bg-gray-200"
+              }`}
           >
             Month
           </button>

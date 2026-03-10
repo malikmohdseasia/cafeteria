@@ -1,4 +1,6 @@
+import { HTTP_STATUS } from "../constants/httpStatus.js";
 import * as dailyMenuService from "../services/daily.menu.service.js";
+import { MESSAGES } from "../constants/messages.js";
 
 
 
@@ -7,9 +9,9 @@ export const addDailyMenuItems = async (req, res) => {
     const { categoryId, foodId } = req.body;
 
     if (!categoryId || !foodId) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "categoryId and foodId are required",
+        message: MESSAGES.FOOD.CATE_FOOD,
       });
     }
 
@@ -18,13 +20,13 @@ export const addDailyMenuItems = async (req, res) => {
       foodId
     );
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       message: "Item added to Daily Menu",
       data: result,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: error.message,
     });
@@ -37,12 +39,12 @@ export const getDailyMenu = async (req, res) => {
     const data =
       await dailyMenuService.getDailyMenu();
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       data,
     });
   } catch (error) {
-    res.status(404).json({
+    res.status(HTTP_STATUS.NOT_FOUND).json({
       success: false,
       message: error.message,
     });
@@ -56,7 +58,7 @@ export const deleteDailyMenuItemController = async (req, res) => {
     const { foodId } = req.params;
 
     if (!foodId) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         message: "FoodId is required",
       });
@@ -65,13 +67,13 @@ export const deleteDailyMenuItemController = async (req, res) => {
     const updatedMenu =
       await dailyMenuService.deleteDailyMenuItem(foodId);
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       message: "Item removed successfully",
       data: updatedMenu,
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: error.message,
     });

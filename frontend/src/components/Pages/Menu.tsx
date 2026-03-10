@@ -21,7 +21,7 @@ const Menu = () => {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedFoods, setSelectedFoods] = useState<string[]>([]);
+  const [selectedFoods, setSelectedFoods] = useState<any>([]);
 
   const { fetchMenu, menu, addFoodWithCategory, deleteItem, updateItem } = useMenuStore();
   const { fetchDailyMenu, addItemToDailyMenu, dailyMenu }: any = useDailyMenuStore();
@@ -36,7 +36,7 @@ const Menu = () => {
     fetchDailyMenu();
     fetchMenu();
     fetchCategories();
-  }, []);
+  }, [editItemData]);
 
   useEffect(() => {
     if (Array.isArray(menu) && menu.length > 0) {
@@ -70,6 +70,7 @@ const Menu = () => {
     })
 
     await fetchMenu();
+    await fetchDailyMenu();
 
     setIsDeleteModalOpen(false);
     setSelectedId(null);
@@ -114,7 +115,6 @@ const Menu = () => {
                 }`}
             >
               {cat?.name}
-              {console.log(cat?.name)}
             </button>
           ))}
         </div>
@@ -127,47 +127,46 @@ const Menu = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-12 lg:gap-20">
         {menuData[activeTab]?.length > 0 ? (
           menuData[activeTab].map((item: any) => (
             <div
               key={item.id}
-              className="relative bg-white/80 backdrop-blur-md rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 flex flex-col items-center justify-between group border border-transparent hover:border-purple-200"
+              className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center justify-between w-36 sm:w-40"
             >
-              <div className="absolute -top-3 right-4 bg-linear-to-r from-purple-600 to-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
-                ₹ {item.price}
-              </div>
-
-              <h3 className="text-base font-semibold text-gray-800 mt-4 text-center group-hover:text-purple-600 transition">
+              <h3 className="text-purple-600 font-medium text-sm sm:text-sm text-center">
                 {item.name}
               </h3>
 
-              <div className="w-10 h-1 bg-purple-500 rounded-full my-4 opacity-70 group-hover:w-16 transition-all duration-300"></div>
+              <p className="text-gray-700 text-xs sm:text-sm mt-1">RS. {item.price}</p>
 
-              <div className="flex items-center justify-center gap-3 mt-2">
-
+              <div className="flex items-center gap-2 mt-2">
                 <button
                   onClick={() => {
-                    setEditItemData({ categoryId: item.categoryId, foodId: item.id, name: item.name, price: item.price });
+                    setEditItemData({
+                      categoryId: item.categoryId,
+                      foodId: item.id,
+                      name: item.name,
+                      price: item.price,
+                    });
                     setIsEditModalOpen(true);
                   }}
-                  className="p-2 rounded-full bg-gray-100 hover:bg-purple-100 hover:text-purple-600 transition-all duration-200 shadow-sm hover:scale-110"
+                  className="p-1 rounded-full bg-gray-100 hover:bg-purple-100 text-purple-600 transition duration-200"
                 >
-                  <Pencil size={16} />
+                  <Pencil size={14} />
                 </button>
 
                 <button
-                  disabled={isAlreadyInDailyMenu(item.id)}
                   onClick={() => addItemToDailyMenu(item.categoryId, item.id)}
-                  className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-200 shadow-md
-  ${isAlreadyInDailyMenu(item.id)
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-purple-600 text-white hover:bg-purple-700 hover:scale-105"
+                  disabled={isAlreadyInDailyMenu(item.id)}
+                  className={`p-1 rounded-xl flex items-center justify-center text-xs sm:text-sm font-medium transition duration-200 px-2
+        ${isAlreadyInDailyMenu(item.id)
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-green-500 text-white hover:bg-green-600"
                     }`}
                 >
                   {isAlreadyInDailyMenu(item.id) ? "Added" : "Add"}
                 </button>
-
 
                 <button
                   onClick={() => {
@@ -175,9 +174,9 @@ const Menu = () => {
                     setSelectedCategory(item.categoryId);
                     setIsDeleteModalOpen(true);
                   }}
-                  className="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-500 transition-all duration-200 shadow-sm hover:scale-110"
+                  className="p-1 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition duration-200"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             </div>
@@ -270,9 +269,9 @@ const Menu = () => {
                         return;
                       }
 
-                      setSelectedFoods((prev) =>
+                      setSelectedFoods((prev:any) =>
                         prev.includes(food._id)
-                          ? prev.filter((id) => id !== food._id)
+                          ? prev.filter((id:any) => id !== food._id)
                           : [...prev, food._id]
                       );
                       setWarning("");
@@ -299,7 +298,7 @@ ${alreadyAdded
             onClick={() => {
               setIsAddModalOpen(false);
               setSelectedCategory("");
-              setSelectedFood("");
+              setSelectedFoods("");
               setWarning("");
             }}
             className="px-5 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"

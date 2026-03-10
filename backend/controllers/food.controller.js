@@ -22,7 +22,7 @@ export const getFoods = async (req, res, next) => {
   try {
     const foods = await foodService.getAllFoods();
 
-    res.json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       count: foods.length,
       data: foods,
@@ -52,7 +52,7 @@ export const updateFood = async (req, res, next) => {
       req.body
     );
 
-    res.json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       message: MESSAGES.FOOD.UPDATE,
       data: food,
@@ -72,5 +72,25 @@ export const deleteFood = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+
+
+export const searchFoodByNameController = async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    const foods = await foodService.searchFoodByNameService(name);
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: foods,
+    });
+  } catch (error) {
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

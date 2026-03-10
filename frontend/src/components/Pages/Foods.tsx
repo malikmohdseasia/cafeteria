@@ -14,13 +14,15 @@ interface Food {
 
 
 const Foods = () => {
-    const { foods, fetchFoods, deleteFood, updateFood } = useFoodStore();
+    const [search, setSearch] = useState("");
+    const { foods, fetchFoods, deleteFood, updateFood, searchFood } = useFoodStore();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedFoodId, setSelectedFoodId] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editFoodId, setEditFoodId] = useState<string | null>(null);
     const [foodName, setFoodName] = useState("");
     const [foodPrice, setFoodPrice] = useState<number>(0);
+
 
 
     const openDeleteModal = (id: string) => {
@@ -102,14 +104,47 @@ const Foods = () => {
         },
     ];
 
+
+
+  
+
     useEffect(() => {
         fetchFoods();
     }, []);
 
+    useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+
+        if (search.trim() === "") {
+            fetchFoods();
+        } else {
+            searchFood(search);
+        }
+
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+
+}, [search]);
+
     return (
         <div className="p-4 bg-white rounded-lg shadow-md">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
 
-            <h2 className="text-xl font-semibold mb-4">Foods</h2>
+                <h2 className="text-xl font-semibold">Foods</h2>
+
+
+                <input
+                    type="text"
+                    placeholder="Search food..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full lg:w-64 border border-purple-500 px-4 py-2 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+
+
+            </div>
+
             <DataTable
                 columns={columns}
                 data={foods}
@@ -197,7 +232,7 @@ const Foods = () => {
                                 onClick={handleUpdateFood}
                                 className="px-4 py-2 bg-[#7B2FF7] text-white rounded-md cursor-pointer"
                             >
-                              Update
+                                Update
                             </button>
 
                         </div>

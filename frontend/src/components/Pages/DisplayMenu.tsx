@@ -64,10 +64,9 @@ const DisplayMenu: React.FC<Props> = ({ activeTab }) => {
       cell: (row: MenuItem) => (
         <button
           onClick={() => handleDelete(row.id)}
-          className="flex items-center gap-1 bg-[#7B2FF7]  text-white text-xs px-3 py-1.5 rounded-md transition"
+          className="p-1 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition duration-200"
         >
           <Trash2 size={14} />
-          Delete
         </button>
       ),
     },
@@ -97,7 +96,7 @@ const DisplayMenu: React.FC<Props> = ({ activeTab }) => {
     },
   };
 
-  
+
 
   return (
     <div className="bg-white shadow-lg rounded-2xl p-6 mt-10">

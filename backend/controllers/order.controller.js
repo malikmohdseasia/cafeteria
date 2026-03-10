@@ -19,7 +19,7 @@ export const placeOrder = async (req, res) => {
   } catch (error) {
     const status =
       error.message === MESSAGES.CART_EMPTY ||
-      error.message === MESSAGES.CART_NOT_FOUND
+        error.message === MESSAGES.CART_NOT_FOUND
         ? HTTP_STATUS.BAD_REQUEST
         : HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
@@ -85,6 +85,7 @@ export const getPendingOrders = async (req, res) => {
       totalPending: pendingOrders.length,
       data: pendingOrders,
     });
+
   } catch (error) {
     res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
@@ -98,9 +99,9 @@ export const getPendingOrders = async (req, res) => {
 export const getMostOrderedTimeSlots = async (req, res) => {
   try {
     const result = await orderService.getMostOrderedTimeSlotsService();
-    res.status(200).json(result);
+    res.status(HTTP_STATUS.OK).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: error.message,
     });
@@ -117,13 +118,13 @@ export const getRevenueStatsController = async (req, res) => {
 
     const stats = await orderService.getRevenueStatsService(range);
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       range: range || "today",
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: error.message
     });
@@ -137,13 +138,13 @@ export const getOrderHistory = async (req, res) => {
   try {
     const result = await orderService.getOrderHistoryService(req.query);
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
-      message: "Order history fetched successfully",
+      message: MESSAGES.ORDER.ORDER_HISTORY,
       ...result,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: error.message,
     });
@@ -157,13 +158,13 @@ export const getConfirmedOrders = async (req, res) => {
     const confirmedOrders =
       await orderService.getConfirmedOrdersService(range);
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       totalConfirmed: confirmedOrders.length,
       data: confirmedOrders,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: error.message,
     });
@@ -175,14 +176,14 @@ export const getConfirmedOrders = async (req, res) => {
 
 export const updateOrderStatus = async (req, res) => {
   try {
-    const { orderId } = req.params;
+    const { userId } = req.params;
     const { status } = req.body;
 
-    const result = await orderService.updateOrderStatus(orderId, status);
+    const result = await orderService.updateOrderStatus(userId, status);
 
-    res.status(200).json(result);
+    res.status(HTTP_STATUS.OK).json(result);
   } catch (error) {
-    res.status(400).json({
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: error.message,
     });
@@ -195,23 +196,14 @@ export const cancelOrderController = async (req, res) => {
 
     const result = await orderService.cancelOrder(orderId);
 
-    res.status(200).json(result);
+    res.status(HTTP_STATUS.OK).json(result);
   } catch (error) {
-    res.status(400).json({
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: error.message,
     });
   }
 };
-
-
-
-
-
-
-
-
-
 
 
 
@@ -225,12 +217,12 @@ export const downloadPendingOrders = async (req, res) => {
     const pendingOrders = await orderService.getPendingOrdersService(range);
 
     const formattedData = pendingOrders.map(order => ({
-      Date: new Date(order.createdAt).toLocaleDateString(),
+      Date: order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "",
       OrderId: order._id,
-      EmployeeName: order.user?.name,
-      EmployeeEmail: order.user?.email,
+      EmployeeName: order.user?.name || "",
+      EmployeeEmail: order.user?.email || "",
       Status: order.status,
-      TotalAmount: order.totalAmount,
+      TotalAmount: order.totalAmount || 0,
     }));
 
     let filePath;
@@ -244,7 +236,7 @@ export const downloadPendingOrders = async (req, res) => {
     return res.download(filePath);
 
   } catch (error) {
-    res.status(400).json({
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: error.message,
     });
@@ -258,14 +250,13 @@ export const downloadOrdersHistory = async (req, res) => {
   try {
     const { range = "today", format = "pdf", page = 1, limit = 1000 } = req.query;
 
-    // ⚠ Pass full query object, not just range
     const result = await orderService.getOrderHistoryService({
       page,
       limit,
       range,
     });
 
-    const orders = result.orders; // ✅ get array properly
+    const orders = result.orders; 
 
     const formattedData = orders.map(order => ({
       Date: new Date(order.createdAt).toLocaleDateString(),
@@ -287,7 +278,7 @@ export const downloadOrdersHistory = async (req, res) => {
     return res.download(filePath);
 
   } catch (error) {
-    res.status(400).json({
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: error.message,
     });
@@ -299,12 +290,90 @@ export const getRecentOrdersController = async (req, res) => {
   try {
     const orders = await orderService.fetchRecentOrders();
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       data: orders,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+export const getOrdersByStatusController = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    const orders = await orderService.getOrdersByStatusService(status);
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: orders,
+    });
+
+  } catch (error) {
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+export const searchOrdersController = async (req, res) => {
+  try {
+
+    const { query } = req.query;
+
+    const data = await orderService.searchOrdersService(query);
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data
+    });
+
+  } catch (error) {
+
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+};
+
+
+export const searchPendingOrders = async (req, res) => {
+  try {
+    const { range = "today", search = "" } = req.query;
+
+    if (!search.trim()) {
+      return res.status(HTTP_STATUS.OK).json({
+        success: true,
+        range,
+        search,
+        totalPending: 0,
+        data: [],
+      });
+    }
+
+    const pendingOrders = await orderService.searchPendingOrdersService(range, search);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      range,
+      search,
+      totalPending: pendingOrders.length,
+      data: pendingOrders,
+    });
+
+  } catch (error) {
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: error.message,
     });

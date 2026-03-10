@@ -51,21 +51,26 @@ const AddMoney = () => {
     const columns: TableColumn<User>[] = [
         {
             name: "Name",
-            selector: (row) => row.name,
+            selector: (row:any) => row.name,
             sortable: true,
         },
         {
             name: "Employee ID",
-            selector: (row) => row.email,
+            selector: (row:any) => row.email,
         },
         {
             name: "Wallet Balance (₹)",
-            selector: (row) => row.wallet,
+            selector: (row:any) => row.wallet,
+            sortable: true,
+        },
+        {
+            name: "Pending (₹)",
+            selector: (row:any) => row.pending,
             sortable: true,
         },
         {
             name: "Action",
-            cell: (row) => (
+            cell: (row:any) => (
                 <button
                     onClick={() => openModal(row._id)}
                     className="flex items-center gap-1 bg-[#7B2FF7] text-white px-3 py-1 rounded-md hover:bg-purple-700"

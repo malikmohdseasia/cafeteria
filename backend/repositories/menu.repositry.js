@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 import Menu from "../ models/menu.model.js"
+import { DailyMenu } from "../ models/daily.menu.js";
 
 
 
-export const findMenuByCategoryAndDate = (categoryId, date) => {
+export const findMenuByCategory = (categoryId) => {
   return Menu.findOne({
-    category: categoryId,
-    date: date
+    category: categoryId
   })
     .populate("category", "name")
     .populate("items.food", "name price");
@@ -66,25 +66,33 @@ export const deleteMenuById = (menuId) => {
 
 
 
-export const removeItemFromMenuRepo = async (
-  categoryId,
-  foodId
-) => {
-  return await Menu.findOneAndUpdate(
-    {
-      category: new mongoose.Types.ObjectId(categoryId),
-    },
+export const removeItemFromMenuRepo = async (categoryId, foodId) => {
+
+  const categoryObjectId = new mongoose.Types.ObjectId(categoryId);
+  const foodObjectId = new mongoose.Types.ObjectId(foodId);
+
+  const updatedMenu = await Menu.findOneAndUpdate(
+    { category: categoryObjectId },
     {
       $pull: {
         items: {
-          food: new mongoose.Types.ObjectId(foodId),
+          food: foodObjectId,
         },
       },
     },
+    { new: true }
+  );
+
+  await DailyMenu.updateMany(
+    { "items.food": foodObjectId },
     {
-      new: true,
+      $pull: {
+        items: { food: foodObjectId },
+      },
     }
   );
+
+  return updatedMenu;
 };
 
 

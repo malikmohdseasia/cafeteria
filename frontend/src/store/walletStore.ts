@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { addMoneyApi, getAllUsersApi, getWalletHistory } from "../api/walletApi";
+import { addMoneyApi, downloadWalletHistoryApi, filterWalletApi, getAllUsersApi, getWalletHistory } from "../api/walletApi";
 
 interface WalletHistory {
   name: string;
@@ -28,10 +28,12 @@ interface WalletState {
   isLoading: boolean;
   error: string | null;
 
+  filterWalletUsers: (type: string, amount: number) => Promise<void>;
   getWalletHistory: () => Promise<void>;
   clearWalletHistory: () => void;
   getAllUsers: () => Promise<void>;
   addMoney: (userId: string, amount: number) => Promise<void>;
+  downloadWalletHistory: (format: "pdf" | "excel") => Promise<void>;
 }
 
 export const useWalletStore = create<WalletState>((set) => ({
@@ -103,6 +105,52 @@ export const useWalletStore = create<WalletState>((set) => ({
         error: err.response?.data?.message || err.message,
         isLoading: false,
       });
+    }
+  },
+
+  filterWalletUsers: async (type: string, amount: number) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const res = await filterWalletApi(type, amount);
+
+      const formatted = (res.data || []).map((item: any) => ({
+        employeeId: item.user?.email,
+        name: item.user?.name,
+        pendingBill: item.pending,
+        wallet: item.balance,
+      }));
+
+      set({
+        users: formatted,
+        isLoading: false,
+      });
+
+    } catch (err: any) {
+      set({
+        error: err.message,
+        isLoading: false,
+      });
+    }
+  },
+
+  downloadWalletHistory: async (format: any) => {
+    try {
+      const response = await downloadWalletHistoryApi(format);
+
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `wallet-history.${format === "excel" ? "xlsx" : "pdf"}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Wallet history download failed", error);
     }
   },
 

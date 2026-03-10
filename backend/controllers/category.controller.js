@@ -6,9 +6,9 @@ import * as categoryService from "../services/category.service.js";
 export const create = async (req, res) => {
   try {
     const category = await categoryService.createCategory(req.body.name);
-    res.status(HTTP_STATUS.OK).json({ success: true, category });
+    res.status(HTTP_STATUS.CREATED).json({ success: true, category });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: err.message });
   }
 };
 
@@ -17,12 +17,12 @@ export const update = async (req, res) => {
     req.params.id,
     req.body.name
   );
-  res.json(category);
+  res.status(HTTP_STATUS.OK).json(category);
 };
 
 export const remove = async (req, res) => {
   await categoryService.deleteCategory(req.params.id);
-  res.json({ message: MESSAGES.CATEGORY.CATEGORY_DELETED});
+  res.status(HTTP_STATUS.OK).json({ message: MESSAGES.CATEGORY.CATEGORY_DELETED});
 };
 
 

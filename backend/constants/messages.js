@@ -6,6 +6,15 @@ export const MESSAGES = {
         USER_ALREADY_EXISTS: "User already exists with this email",
         UNAUTHORIZED: "Unauthorized access",
     },
+    OTP: {
+        SEND_OTP: "OTP sent successfully"
+    },
+
+    QUERY: {
+        QUERY_MESSAGE: "Query parameter is required"
+    },
+
+
 
     FOOD: {
         CREATED: "FOOD created",
@@ -14,13 +23,15 @@ export const MESSAGES = {
         FOOD_DELETE: "FOOD deleted successfully!",
         NOT_FOUND: "FOOD not found!",
         DELETE: "FOOD successfully deleted!",
-        UPDATE: "FOOD successfully updated!",
-        FETCH_SUCCESS:"FOOD fetch successfully!"
+        UPDATE: "Item updated successfully!",
+        FETCH_SUCCESS: "FOOD fetch successfully!",
+        CATE_FOOD: "categoryId and foodId are required"
     },
 
     ORDER: {
         CREATED: "Order placed",
         UPDATED: "Order status updated",
+        ORDER_HISTORY: "Order history fetched successfully"
     },
 
     COMMON: {
@@ -28,15 +39,18 @@ export const MESSAGES = {
         INTERNAL_SERVER_ERROR: "Internal server error",
     },
 
-    CART:{
-        ITEM_ADDED:"Item added to cart",
-        QUANTITY_ADDED:"Quantity updated",
+    CART: {
+        ITEM_ADDED: "Item added to cart",
+        QUANTITY_ADDED: "Quantity updated",
         EMPTY_CART: "Cart is empty"
     },
-    CATEGORY:{
+    CATEGORY: {
         CATEGORY_DELETED: "Category deleted successfully"
     },
-    PAYMENT:{
-        PAYMENT_CREATED:"Payment intent created"
+    PAYMENT: {
+        PAYMENT_CREATED: "Payment intent created"
+    },
+    WALLET: {
+        HISTORY: "No wallet history available"
     }
 };

@@ -1,27 +1,39 @@
-import { useEffect, useState } from 'react'
-import { useOrderStore } from '../../store/orderStore'
+import { useEffect, useState } from "react";
+import { useOrderStore } from "../../store/orderStore";
 import { Bell } from "lucide-react";
-
-interface Notification {
-  _id: string;
-  title: string;
-  message: string;
-  createdAt: string;
-  isRead: boolean;
-}
-
+import { socket } from "../../socket/socket";
+import { useNavigate } from "react-router-dom";
 
 const Notification = () => {
-
+  const navigate = useNavigate();
   const { fetchNotifications, notifications, markNotificationsRead } = useOrderStore();
   const [open, setOpen] = useState(false);
+  console.log(notifications)
 
   useEffect(() => {
+
     fetchNotifications();
+
+    socket.on("newOrder", () => {
+      fetchNotifications();
+    });
+
+    return () => {
+      socket.off("newOrder");
+    };
+
   }, []);
 
-
   const unreadCount = notifications.filter((n: any) => !n.isRead).length;
+
+  socket.on("connect", () => {
+    console.log("Socket connected:", socket.id);
+  });
+
+  socket.on("connect_error", (err) => {
+    console.log("Socket error:", err.message);
+  });
+
   return (
     <div className="relative">
 
@@ -56,24 +68,29 @@ const Notification = () => {
               </p>
             ) : (
 
-              notifications.map((n: any) => (
+              notifications?.map((n: any) => (
                 <div
-                  key={n._id}
+                  key={n.notificationId}
                   className="p-3 border-b border-gray-300 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {navigate("/orders")
+                    setOpen(false)
+                  }}
                 >
-
                   <p className="font-semibold text-sm">
-                    {n.title}
+                    {n.name} ({n.email})
                   </p>
 
                   <p className="text-xs text-gray-600">
-                    {n.message}
+                    Order ₹{n.price}
+                  </p>
+
+                  <p className="text-xs text-gray-500">
+                    Order ID: {n.orderId}
                   </p>
 
                   <p className="text-xs text-gray-400 mt-1">
                     {new Date(n.createdAt).toLocaleString()}
                   </p>
-
                 </div>
               ))
 

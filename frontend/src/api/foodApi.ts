@@ -13,3 +13,6 @@ export const UpdateFoodApi = (
   id: string,
   data: { name: string; price: number }
 ) => axiosInstance.patch(`food/update/${id}`, data);
+
+export const searchFoodApi = (name: string) =>
+  axiosInstance.get(`food/search?name=${name}`).then(res => res.data);

@@ -1,12 +1,9 @@
 import { create } from "zustand";
 import { getAllCategoriesApi } from "../api/categoryApi";
 
-interface categoryData {
- categories:[]
-}
 
 interface CategoryState {
-  categories: categoryData | null;
+  categories: [] | null;
   isLoading: boolean;
   error: string | null;
 

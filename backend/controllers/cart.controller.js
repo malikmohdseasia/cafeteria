@@ -12,13 +12,13 @@ export const addItemToCart = async (req, res) => {
 
     const cart = await cartService.addToCart(userId, foodId);
 
-    res.status(201).json({
+    res.status(HTTP_STATUS.CREATED).json({
       success: true,
       message: "Item added to cart",
       data: cart,
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: error.message,
     });
@@ -72,9 +72,9 @@ export const checkout = async (req, res) => {
 
     const result = await cartService.checkoutCart(userId);
 
-    res.status(200).json(result);
+    res.status(HTTP_STATUS.OK).json(result);
   } catch (error) {
-    res.status(400).json({
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: error.message,
     });
@@ -91,9 +91,9 @@ export const adminCheckout = async (req, res) => {
 
     const result = await cartService.checkoutCartByAdmin(userId);
 
-    res.status(200).json(result);
+    res.status(HTTP_STATUS.OK).json(result);
   } catch (error) {
-    res.status(400).json({
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: error.message,
     });

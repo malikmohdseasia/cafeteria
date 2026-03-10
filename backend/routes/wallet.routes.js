@@ -11,7 +11,8 @@ router.post("/add-money", authGuard, roleGuard("ADMIN"), addMoneyToUser);
 // router.get("/:userId", authGuard, roleGuard("USER"), walletController.getWallet);
 // router.get("/history/:userId", authGuard, roleGuard("USER"), walletController.getWalletHistory);
 router.get("/wallet-history", authGuard, roleGuard("ADMIN"), walletController.getWalletHistory);
+router.get("/wallet-history/download", authGuard, roleGuard("ADMIN"), walletController.downloadWalletHistory);
 router.get("/all-users", authGuard, roleGuard("ADMIN"), getAllUsers);
 router.get("/wallet-history/search", authGuard, roleGuard("ADMIN"), walletController.searchWalletHistoryController);
-
+router.get("/filter", authGuard, roleGuard("ADMIN"), walletController.filterWalletPending);
 export default router;

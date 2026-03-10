@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Order from "../ models/order.model.js";
 
 export const createOrder = async (orderData) => {
@@ -225,16 +226,14 @@ export const getRevenueStats = async (startDate, endDate) => {
 
 
 export const fetchAllOrders = async ({
-  page = 1,
-  limit = 10,
+  page,
+  limit,
   paymentStatus,
   status,
   startDate,
   endDate,
 }) => {
-  const skip = (page - 1) * limit;
 
-  // 🔥 Build dynamic filter
   const filter = {};
 
   if (paymentStatus) {
@@ -242,12 +241,12 @@ export const fetchAllOrders = async ({
   }
 
   if (status) {
-  if (Array.isArray(status)) {
-    filter.status = { $in: status };
-  } else {
-    filter.status = status;
+    if (Array.isArray(status)) {
+      filter.status = { $in: status };
+    } else {
+      filter.status = status;
+    }
   }
-}
 
   if (startDate && endDate) {
     filter.createdAt = {
@@ -256,19 +255,23 @@ export const fetchAllOrders = async ({
     };
   }
 
-  const orders = await Order.find(filter)
-   .populate("user", "name email")
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
+  let query = Order.find(filter)
+    .populate("user", "name email")
+    .sort({ createdAt: -1 });
 
+  if (limit && page) {
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+  }
+
+  const orders = await query;
   const total = await Order.countDocuments(filter);
 
   return {
     orders,
     total,
-    page,
-    totalPages: Math.ceil(total / limit),
+    page: page || 1,
+    totalPages: limit ? Math.ceil(total / limit) : 1,
   };
 };
 
@@ -282,7 +285,6 @@ export const fetchPendingOrders = async (startDate, endDate) => {
     .populate("user", "name email")
     .sort({ createdAt: -1 });
 };
-
 
 export const fetchConfirmedOrders = async (startDate, endDate) => {
   return Order.find({
@@ -318,6 +320,124 @@ export const cancelOrderById = (orderId) => {
 
 export const getRecentOrders = async () => {
   return await Order.find()
-    .populate("user", "name email") 
-    .sort({ createdAt: -1 }) 
+    .populate("user", "name email")
+    .sort({ createdAt: -1 })
+};
+
+
+export const getOrdersByStatusRepo = async (status) => {
+  return await Order.find({ status })
+    .populate("user", "name email")
+    .populate("items.product", "name price")
+    .sort({ createdAt: -1 });
+};
+
+
+
+export const searchOrdersRepo = async (query) => {
+
+  const matchUser = [
+    { "user.name": { $regex: query, $options: "i" } },
+    { "user.email": { $regex: query, $options: "i" } }
+  ];
+
+  if (mongoose.Types.ObjectId.isValid(query)) {
+    matchUser.push({ "user._id": new mongoose.Types.ObjectId(query) });
+  }
+
+  const orders = await Order.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    { $unwind: "$user" },
+
+    {
+      $match: {
+        $or: matchUser
+      }
+    },
+
+    {
+      $project: {
+        _id: 1,
+        createdAt: 1,
+        status: 1,
+        totalAmount: 1,
+        paymentStatus: 1,
+        "user._id": 1,
+        "user.name": 1,
+        "user.email": 1
+      }
+    },
+
+    { $sort: { createdAt: -1 } }
+  ]);
+
+  return orders;
+};
+
+
+export const findPendingOrdersByUser = async (userId) => {
+  return Order.find({
+    user: userId,
+    status: "PENDING",
+  });
+};
+
+export const updateStatusByUser = async (userId, status) => {
+  return Order.updateMany(
+    { user: userId, status: "PENDING" },
+    { $set: { status } }
+  );
+};
+
+
+
+export const searchPendingOrders = async (startDate, endDate, search = "") => {
+  const match = {
+    status: "PENDING",
+    createdAt: { $gte: startDate, $lte: endDate },
+  };
+
+  if (search.trim()) {
+    return Order.aggregate([
+      { $match: match },
+      {
+        $lookup: {
+          from: "users",           
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },      
+      {
+        $match: {
+          $or: [
+            { "user.name": { $regex: search, $options: "i" } },
+            { "user.email": { $regex: search, $options: "i" } },
+          ],
+        },
+      },
+      {
+        $project: {
+          "user.name": 1,
+          "user.email": 1,
+          totalAmount: 1,
+          status: 1,
+          createdAt: 1,
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+  } else {
+    return Order.find(match)
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+  }
 };

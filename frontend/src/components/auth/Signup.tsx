@@ -1,24 +1,34 @@
 import { motion } from "framer-motion";
 import { Mail, User } from "lucide-react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../store/authStore"; // ✅ adjust path
+import { useNavigate, Link } from "react-router-dom";
+import { useAuthStore } from "../../store/authStore"; 
 import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signupSchema } from "./authValidation/authSchema";
 
 const Signup = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const auth = useAuthStore(); 
+  const auth = useAuthStore();
   const navigate = useNavigate();
 
-  const handleSignup = async () => {
-    const success = await auth.signup(name, email);
-    if (success) {
-      toast.success('User Created Successfully!')
-      const otpSent = await auth.sendOtp(email);
-      if (otpSent) {
-        navigate("/login"); 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+  });
+
+  const onSubmit = async (data:any) => {
+    try {
+      const success = await auth.signup(data.name, data.email);
+      if (success) {
+        toast.success("User Created Successfully!");
+        const otpSent = await auth.sendOtp(data.email);
+        if (otpSent) navigate("/login");
       }
+    } catch (err) {
+      toast.error(auth.error || "Something went wrong!");
     }
   };
 
@@ -51,37 +61,43 @@ const Signup = () => {
           <p className="text-red-400 text-center mb-4">{auth.error}</p>
         )}
 
-        <div className="relative mb-4">
-          <User className="absolute left-3 top-3 text-white/70" size={18} />
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-pink-400"
-          />
-        </div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="relative mb-2">
+            <User className="absolute left-3 top-3 text-white/70" size={18} />
+            <input
+              type="text"
+              placeholder="Full Name"
+              {...register("name")}
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-pink-400"
+            />
+            {errors.name && (
+              <p className="text-red-400 text-sm mt-1">{errors.name.message}</p>
+            )}
+          </div>
 
-        <div className="relative mb-4">
-          <Mail className="absolute left-3 top-3 text-white/70" size={18} />
-          <input
-            type="email"
-            placeholder="Email Address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-pink-400"
-          />
-        </div>
+          <div className="relative mb-2">
+            <Mail className="absolute left-3 top-3 text-white/70" size={18} />
+            <input
+              type="email"
+              placeholder="Email Address"
+              {...register("email")}
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-pink-400"
+            />
+            {errors.email && (
+              <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>
+            )}
+          </div>
 
-        <motion.button
-          onClick={handleSignup}
-          disabled={auth.isLoading}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-full py-3 rounded-xl font-semibold bg-linear-to-r from-pink-500 to-purple-600 text-white shadow-lg disabled:opacity-50"
-        >
-          {auth.isLoading ? "Signing Up..." : "Sign Up"}
-        </motion.button>
+          <motion.button
+            type="submit"
+            disabled={isSubmitting || auth.isLoading}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-full py-3 rounded-xl font-semibold bg-linear-to-r from-pink-500 to-purple-600 text-white shadow-lg disabled:opacity-50"
+          >
+            {auth.isLoading || isSubmitting ? "Signing Up..." : "Sign Up"}
+          </motion.button>
+        </form>
 
         <p className="text-center text-white/80 text-sm mt-6">
           Already Account?{" "}

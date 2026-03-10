@@ -21,10 +21,7 @@ const menuSchema = new mongoose.Schema(
       required: true,
     },
     items: [menuItemSchema],
-    date: {
-      type: Date,
-      required: true,
-    },
+  
   },
   { timestamps: true }
 );

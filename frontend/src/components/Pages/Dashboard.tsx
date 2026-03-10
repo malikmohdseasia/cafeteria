@@ -6,7 +6,6 @@ import { useDashboardStore } from "../../store/dashboardStore";
 import { useEffect, useState } from "react";
 import { useOrderStore } from "../../store/orderStore";
 import DataTable from "react-data-table-component";
-import { useCategoryStore } from "../../store/categoryStore";
 
 
 
@@ -26,10 +25,23 @@ const Dashboard = () => {
       name: "Price",
       selector: (row: any) => `₹${row?.totalAmount}`,
     },
-    {
-      name: "Payment Status",
-      selector: (row: any) => row?.paymentStatus,
-    },
+   {
+  name: "Payment Status",
+  selector: (row: any) => row?.paymentStatus,
+  cell: (row: any) => {
+    let bgColor = "bg-gray-200 text-gray-800"; // default
+
+    if (row.paymentStatus === "PAID") bgColor = "bg-green-100 text-green-800";
+    else if (row.paymentStatus === "PENDING") bgColor = "bg-yellow-100 text-yellow-800";
+   
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${bgColor}`}>
+        {row.paymentStatus}
+      </span>
+    );
+  },
+},
   ];
 
 
@@ -125,7 +137,7 @@ const Dashboard = () => {
 
           <button
             onClick={() => setViewAll(!viewAll)}
-            className="text-white text-[12px] bg-purple-400 px-3 py-1 rounded-lg"
+            className="text-white text-[12px] bg-[#7B2FF7] px-3 py-1 rounded-lg"
           >
             {viewAll ? "Show Less" : "View All"}
           </button>

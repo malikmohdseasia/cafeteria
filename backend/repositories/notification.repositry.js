@@ -5,8 +5,18 @@ export const createNotification = (data) => {
 };
 
 export const getNotifications = () => {
-  return Notification.find().sort({ createdAt: -1 });
+  return Notification.find()
+    .populate({
+      path: "orderId",
+      select: "totalAmount user createdAt",
+      populate: {
+        path: "user",
+        select: "name email",
+      },
+    })
+    .sort({ createdAt: -1 });
 };
+
 
 export const markAllRead = () => {
   return Notification.updateMany(

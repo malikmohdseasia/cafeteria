@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { fetchFoodApi, createFoodApi, deleteFoodApi, UpdateFoodApi } from "../api/foodApi";
+import { fetchFoodApi, createFoodApi, deleteFoodApi, UpdateFoodApi, searchFoodApi } from "../api/foodApi";
 
 interface Food {
   _id: string;
@@ -17,6 +17,7 @@ interface FoodState {
   createFood: (name: string, price: number) => Promise<void>;
   deleteFood: (id: string) => Promise<void>;
   updateFood: (id: string, name: string, price: number) => Promise<void>;
+  searchFood: (name: string) => Promise<void>;
   clearFoods: () => void;
 }
 
@@ -100,6 +101,26 @@ export const useFoodStore = create<FoodState>((set) => ({
       });
     }
   },
+
+  searchFood: async (name) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const data = await searchFoodApi(name);
+
+      set({
+        foods: data?.data || [],
+        isLoading: false,
+      });
+
+    } catch (err: any) {
+      set({
+        error: err.response?.data?.message || err.message,
+        isLoading: false,
+      });
+    }
+  },
+
 
   clearFoods: () => {
     set({ foods: [] });

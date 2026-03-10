@@ -18,12 +18,12 @@ interface SidebarProps {
 const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
 
   const items: SidebarItem[] = [
-    { name: "Dashboard", route: "/dashboard", svg: <Home /> },
-    { name: "Orders", route: "/orders", svg: <CookingPot /> },
-    { name: "User Info", route: "/user-info", svg: <User /> },
-    { name: "Menu", route: "/menu", svg: <GiCookingPot size={'25'} /> },
-    { name: "All Food", route: "/foods", svg: <UtensilsCrossed /> },
-    { name: "Add Money", route: "/add-money", svg: <FaMoneyBill /> }
+    { name: "Dashboard", route: "/dashboard", svg: <Home size={24} /> },
+    { name: "Orders", route: "/orders", svg: <CookingPot size={24} /> },
+    { name: "User Info", route: "/user-info", svg: <User size={24} /> },
+    { name: "Menu", route: "/menu", svg: <GiCookingPot size={24} /> },
+    { name: "All Food", route: "/foods", svg: <UtensilsCrossed size={24} /> },
+    { name: "Add Money", route: "/add-money", svg: <FaMoneyBill size={24} /> }
   ];
 
   return (
@@ -55,18 +55,14 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
             key={item.route}
             to={item.route}
             onClick={() => {
-              if (window.innerWidth < 1024) {
-                setIsOpen(false);
-              }
+              if (window.innerWidth < 1024) setIsOpen(false);
             }}
             className={({ isActive }) =>
-              `px-4 py-3 rounded-md font-medium transition-all duration-300 flex items-center gap-3 text-sm ${isActive
-                ? "bg-[#7B2FF7] text-white"
-                : "text-gray-700 hover:bg-gray-100"
+              `px-4 py-3 rounded-md font-medium transition-all duration-300 flex items-center gap-3 text-sm ${isActive ? "bg-[#7B2FF7] text-white" : "text-gray-700 hover:bg-gray-100"
               }`
             }
           >
-            {item.svg}
+            <span className="w-6 h-6 shrink-0">{item.svg}</span>
             <span className={`${!isOpen ? "lg:hidden" : ""}`}>{item.name}</span>
           </NavLink>
         ))}

@@ -61,7 +61,7 @@ export const getAnalyticsService = async (type, range = "today") => {
       return await analyticsRepo.getTopUsersAnalytics();
 
     case "topselling":
-      return await topSellingRepo.fetchTopSellingByCategory(matchFilter);
+      return await topSellingRepo.fetchTopSellingByCategory();
 
     default:
       throw new Error("Invalid analytics type");

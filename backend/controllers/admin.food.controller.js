@@ -1,4 +1,5 @@
 import Food from "../ models/food.model.js";
+import { HTTP_STATUS } from "../constants/httpStatus.js";
 
 export const toggleFoodVisibility = async (req, res) => {
   const { foodId } = req.params;
@@ -10,7 +11,7 @@ export const toggleFoodVisibility = async (req, res) => {
     { new: true }
   );
 
-  res.json({
+  res.status(HTTP_STATUS.OK).json({
     success: true,
     data: food,
   });

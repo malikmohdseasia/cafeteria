@@ -26,21 +26,14 @@ export const addFoodUsingCategoryName = async (categoryName, foodIds) => {
     throw new Error("Category not found");
   }
 
-  const today = todayDate();
+  let menu = await menuRepo.findMenuByCategory(category._id);
 
-  let menu = await menuRepo.findMenuByCategoryAndDate(
-    category._id,
-    today
-  );
-
-  // create menu if not exist
   if (!menu) {
     const items = foodIds.map((id) => ({ food: id }));
 
     menu = await menuRepo.createMenu({
       category: category._id,
-      items,
-      date: today,
+      items
     });
   } else {
     const existingFoodIds = menu.items
@@ -68,6 +61,7 @@ export const addFoodUsingCategoryName = async (categoryName, foodIds) => {
     .populate("category", "name")
     .populate("items.food", "name price");
 };
+
 
 export const getAllMenusService = async () => {
   const menus = await menuRepo.getAllMenusRepo();

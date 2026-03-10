@@ -11,3 +11,14 @@ export const signupApi = (name: string, email: string) =>
 
 export const pendingPaymentUsers = () =>
   axiosInstance.get("/auth/pending-users").then(res => res.data);
+
+export const searchPendingPaymentUsers = (query: string) =>
+  axiosInstance
+    .get(`/auth/users/pending/search?query=${encodeURIComponent(query)}`)
+    .then(res => res.data);
+
+
+export const downloadPendingUsers = (format: "pdf" | "excel") =>
+  axiosInstance.get(`/auth/users/pending/download?format=${format}`, {
+    responseType: "blob",
+  });

@@ -114,3 +114,15 @@ export const getAllUsers = () => {
     .sort({ createdAt: -1 });
 };
 
+export const searchUsersWithPendingPayment = (search) => {
+  const regex = new RegExp(search, "i");
+  return User.find({
+    pending: { $gt: 0 },
+    $or: [
+      { name: regex },
+      { email: regex }
+    ],
+  })
+    .select("-otp -otpExpiresAt")
+    .sort({ pending: -1 });
+};

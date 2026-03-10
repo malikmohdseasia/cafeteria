@@ -11,3 +11,14 @@ export const addMoneyApi = (userId: string, amount: number) =>
     userId,
     amount,
   });
+
+export const filterWalletApi = (type: string, amount: number) =>
+  axiosInstance
+    .get(`/wallet/filter?type=${type}&amount=${amount}`)
+    .then((res) => res.data);
+
+export const downloadWalletHistoryApi = (format: "pdf" | "excel") => {
+  return axiosInstance.get(`/wallet/wallet-history/download?format=${format}`, {
+    responseType: "blob",
+  });
+};

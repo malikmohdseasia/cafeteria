@@ -6,7 +6,10 @@ import {
   fetchRecentOrdersApi,
   updateStatusOrder,
   fetchNotificationsApi,
-  markNotificationsReadApi
+  markNotificationsReadApi,
+  fetchOrdersByStatusApi,
+  searchOrdersApi,
+  searchPendingOrdersApi
 } from "../api/OrderApi";
 
 interface Order {
@@ -34,11 +37,15 @@ interface OrderState {
   isLoading: boolean;
   error: string | null;
 
-  fetchOrders: () => Promise<void>;
+  fetchOrders: (range?: string) => Promise<void>;
   fetchRecentOrders: () => Promise<void>;
   fetchPendingOrders: () => Promise<void>;
   fetchNotifications: () => Promise<void>;
   markNotificationsRead: () => Promise<void>;
+  fetchOrdersByStatus: (status: string) => Promise<void>;
+  searchOrders: (query: string) => Promise<void>;
+  searchPendingOrders: (query: string) => Promise<void>;
+
   clearOrders: () => void;
 
   updateOrderStatus: (id: string, status: string) => void;
@@ -53,11 +60,18 @@ export const useOrderStore = create<OrderState>((set) => ({
   isLoading: false,
   error: null,
 
-  fetchOrders: async () => {
+
+  fetchOrders: async (range?: string) => {
     set({ isLoading: true, error: null });
+
     try {
-      const data = await fetchOrdersApi();
-      set({ orders: data.orders || [], isLoading: false });
+      const data = await fetchOrdersApi(range);
+
+      set({
+        orders: data.orders || [],
+        isLoading: false,
+      });
+
     } catch (err: any) {
       set({
         error: err.response?.data?.message || err.message,
@@ -66,11 +80,34 @@ export const useOrderStore = create<OrderState>((set) => ({
     }
   },
 
+
   fetchPendingOrders: async () => {
     set({ isLoading: true, error: null });
     try {
       const data = await fetchPendingOrdersApi();
-      set({ pendingOrders: data.data || [], isLoading: false });
+
+      set({
+        pendingOrders: data?.data || [],
+        isLoading: false,
+      });
+
+    } catch (err: any) {
+      set({
+        error: err.response?.data?.message || err.message,
+        isLoading: false,
+      });
+    }
+  },
+
+  searchPendingOrders: async (query) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await searchPendingOrdersApi(query);
+
+      set({
+        pendingOrders: data?.data?.[0]?.orders || [],
+        isLoading: false,
+      });
     } catch (err: any) {
       set({
         error: err.response?.data?.message || err.message,
@@ -121,12 +158,12 @@ export const useOrderStore = create<OrderState>((set) => ({
     }));
   },
 
-  updateOrderStatus: async (id: string, status: string) => {
-    await updateStatusOrder(id, status);
+  updateOrderStatus: async (userId: string, status: string) => {
+    await updateStatusOrder(userId, status);
 
     set((state) => ({
       pendingOrders: state.pendingOrders.filter(
-        (order: any) => order._id !== id
+        (order: any) => order.orders?.[0]?.user?._id !== userId
       ),
     }));
   },
@@ -141,4 +178,60 @@ export const useOrderStore = create<OrderState>((set) => ({
       })),
     }));
   },
+  fetchOrdersByStatus: async (status) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const data = await fetchOrdersByStatusApi(status);
+
+      set({
+        orders: data.data || [],
+        isLoading: false,
+      });
+
+    } catch (err: any) {
+      set({
+        error: err.response?.data?.message || err.message,
+        isLoading: false,
+      });
+    }
+  },
+
+  searchOrders: async (query) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const data = await searchOrdersApi(query);
+
+      set({
+        orders: data.data || [],
+        isLoading: false,
+      });
+
+    } catch (err: any) {
+      set({
+        error: err.response?.data?.message || err.message,
+        isLoading: false,
+      });
+    }
+  },
+
+  // searchPendingOrders: async (query: string) => {
+  //   set({ isLoading: true, error: null });
+
+  //   try {
+  //     const data = await searchPendingOrdersApi(query);
+
+  //     set({
+  //       pendingOrders: data?.data?.[0]?.orders || [],
+  //       isLoading: false,
+  //     });
+  //   } catch (err: any) {
+  //     set({
+  //       error: err.response?.data?.message || err.message,
+  //       isLoading: false,
+  //     });
+  //   }
+  // },
+
 }));

@@ -46,15 +46,14 @@ export const deleteDailyMenuItem = async (foodId) => {
 
 
 export const getDailyMenu = async () => {
-  const dailyMenu = await dailyMenuRepo.getLatestDailyMenu();
+  const dailyMenu = await dailyMenuRepo.getTodayDailyMenu();
 
   if (!dailyMenu) {
-    throw new Error("No daily menu found");
+    return [];
   }
 
   const todayMenu = await menuRepo.getTodayMenu();
 
-  // 🔥 Convert menu items into Map for fast lookup
   const menuMap = new Map();
 
   if (todayMenu) {

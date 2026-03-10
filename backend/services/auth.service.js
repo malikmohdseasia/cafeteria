@@ -53,6 +53,7 @@ export const sendOtp = async (email) => {
     "Your Login OTP",
     `Your OTP is ${otp}. It will expire in 5 minutes.`
   );
+  console.log(otp)
 };
 
 export const verifyOtp = async (email, otp) => {
@@ -66,8 +67,10 @@ export const verifyOtp = async (email, otp) => {
     throw new Error("Invalid or expired OTP");
   }
 
+  // ⭐ create wallet when user verified
   if (!user.walletCreated) {
     await userRepo.createWalletForUser(user._id);
+
     user.walletCreated = true;
     await user.save();
   }
@@ -148,4 +151,15 @@ export const getAllUsers = async () => {
   }
 
   return users;
+};
+
+
+export const searchUsersWithPendingPayment = async (search) => {
+  const users = await userRepo.searchUsersWithPendingPayment(search);
+
+  return {
+    success: true,
+    count: users.length,
+    data: users,
+  };
 };

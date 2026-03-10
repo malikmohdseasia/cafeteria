@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { sendOtpApi, verifyOtpApi, signupApi, pendingPaymentUsers } from "../api/authApi";
+import { sendOtpApi, verifyOtpApi, signupApi, pendingPaymentUsers, searchPendingPaymentUsers, downloadPendingUsers } from "../api/authApi";
 
 interface AuthState {
   name: string;
@@ -14,6 +14,8 @@ interface AuthState {
 
   sendOtp: (email: string) => Promise<boolean>;
   fetchPendingUsers: () => Promise<boolean>;
+  searchPendingUsers: (query: string) => Promise<void>;
+  downloadPendingUsers: () => Promise<void>;
   verifyOtp: (otp: string) => Promise<boolean>;
   signup: (name: string, email: string) => Promise<boolean>;
   logout: () => void;
@@ -108,6 +110,40 @@ export const useAuthStore = create<AuthState>()(
           });
         }
       },
+
+      searchPendingUsers: async (query: string) => {
+        const { role } = get();
+        if (role !== "ADMIN") return set({ error: "Access denied" });
+        set({ isLoading: true, error: null });
+        try {
+          const data = await searchPendingPaymentUsers(query);
+          set({ pendingUsers: data.data || [], isLoading: false });
+        } catch (err: any) {
+          set({ error: err.response?.data?.message || err.message, isLoading: false });
+        }
+      },
+
+      downloadPendingUsers: async (format: "pdf" | "excel") => {
+        try {
+          const res = await downloadPendingUsers(format);
+
+          const url = window.URL.createObjectURL(new Blob([res.data]));
+          const link = document.createElement("a");
+
+          link.href = url;
+          link.setAttribute(
+            "download",
+            `pending-users.${format === "excel" ? "xlsx" : "pdf"}`
+          );
+
+          document.body.appendChild(link);
+          link.click();
+        } catch (err: any) {
+          set({
+            error: err.response?.data?.message || err.message,
+          });
+        }
+      },  
 
       logout: () => {
         set({ token: null });
