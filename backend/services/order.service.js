@@ -291,22 +291,19 @@ export const cancelOrder = async (orderId) => {
   const wallet = await userRepo.getWallet(order.user);
   if (!wallet) throw new Error("Wallet not found");
 
-  // Only refund paid amount
-  if (order.paymentStatus === "PAID" || order.paymentStatus === "PENDING") {
+ if (order.paymentStatus === "PAID"){
     wallet.balance += order.totalAmount;
 
-    // Create wallet history record
     await WalletHistory.create({
       user: order.user,
       type: "credit",
       amount: order.totalAmount,
-      subtotal: wallet.balance, // balance after refund
+      subtotal: wallet.balance, 
       description: `Refund for cancelled order ${order._id}`,
     });
 
     await wallet.save();
 
-    // Update user's wallet fields in User model
     await userRepo.updateUserWalletFields(
       order.user,
       wallet.balance,
@@ -314,7 +311,6 @@ export const cancelOrder = async (orderId) => {
     );
   }
 
-  // Update order status
   const updatedOrder = await orderRepo.cancelOrderById(orderId);
 
   return {

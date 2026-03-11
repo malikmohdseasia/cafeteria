@@ -37,7 +37,7 @@ const Dashboard = () => {
 
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${bgColor}`}>
-        {row.paymentStatus}
+        {row.status}
       </span>
     );
   },

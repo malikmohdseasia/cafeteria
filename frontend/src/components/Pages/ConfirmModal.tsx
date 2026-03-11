@@ -37,7 +37,7 @@ const ConfirmModal = ({
           </button>
 
           <button
-            onClick={onConfirm}
+            onClick={()=>onConfirm()}
             className="px-4 py-2 rounded bg-[#7B2FF7] text-white hover:bg-purple-700"
           >
             {confirmText}

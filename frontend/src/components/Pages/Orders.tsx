@@ -45,7 +45,7 @@ const Orders = () => {
 
   const [showQuickDownload, setShowQuickDownload] = useState(false);
   const [selectedRange, setSelectedRange] = useState("today");
-  const [confirmAction, setConfirmAction] = useState<() => void>(() => { });
+  const [confirmAction, setConfirmAction] = useState<() => Promise<void> | void>(() => { });
   const [confirmMessage, setConfirmMessage] = useState("");
 
   const { downloadOrders } = useAnalyticsStore();
@@ -179,9 +179,9 @@ const Orders = () => {
                   setConfirmMessage(
                     "Are you sure you want to confirm this order?"
                   );
-                  setConfirmAction(() => async() => {
+                  setConfirmAction(() => async () => {
                     updateOrderStatus(row.user._id, "CONFIRMED");
-                   await fetchPendingOrders();
+                    await fetchPendingOrders();
                     toast.success("Order Confirmed successfully", {
                       position: "bottom-center",
                     });
@@ -193,17 +193,32 @@ const Orders = () => {
               >
                 Confirm
               </button>
-
               <button
                 onClick={() => {
+                  console.log("selected order:", row._id);
+
                   setSelectedOrderId(row._id);
-                  setConfirmMessage(
-                    "Are you sure you want to cancel this order?"
-                  );
-                  setConfirmAction(() => confirmDelete);
+
+                  setConfirmMessage("Are you sure you want to cancel this order?");
+
+                  setConfirmAction(() => async () => {
+                    if (!row._id) return;
+
+                    await cancelOrderApi(row._id);
+
+                    toast.success("Order cancelled successfully", {
+                      position: "bottom-center",
+                    });
+
+                    await fetchPendingOrders();
+
+                    setIsDeleteOpen(false);
+                    setSelectedOrderId(null);
+                  });
+
                   setIsDeleteOpen(true);
                 }}
-                className="px-3 py-1.5 text-xs font-medium rounded-md cursor-pointer bg-red-500 hover:bg-red-600 text-white whitespace-nowrap"
+                className="px-3 py-1.5 text-xs font-medium rounded-md bg-red-500 hover:bg-red-600 text-white"
               >
                 Cancel
               </button>

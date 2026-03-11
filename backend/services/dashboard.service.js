@@ -29,6 +29,7 @@ export const getAdminDashboardData = async () => {
     {
       $match: {
         paymentStatus: "PAID",
+      status: { $ne: "CANCELLED" },
         createdAt: { $gte: startOfDay, $lte: endOfDay },
       },
     },
@@ -38,16 +39,16 @@ export const getAdminDashboardData = async () => {
         totalRevenue: { $sum: "$totalAmount" },
       },
     },
-  ]);
+  ]); 
 
   const totalRevenue =
     revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
 
- const dailyUsers = await Order.distinct("user", {
-  createdAt: { $gte: startOfDay, $lte: endOfDay },
-});
+  const dailyUsers = await Order.distinct("user", {
+    createdAt: { $gte: startOfDay, $lte: endOfDay },
+  });
 
-const totalCustomers = dailyUsers.length;
+  const totalCustomers = dailyUsers.length;
 
   const adminRechargeData = await WalletHistory.aggregate([
     {
