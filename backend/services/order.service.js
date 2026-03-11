@@ -183,13 +183,13 @@ export const getOrderHistoryService = async (queryParams) => {
 
     if (range === "today") {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    } 
+    }
     else if (range === "3days") {
       startDate = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-    } 
+    }
     else if (range === "7days") {
       startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    } 
+    }
     else if (range === "30days") {
       startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
@@ -291,26 +291,31 @@ export const cancelOrder = async (orderId) => {
   const wallet = await userRepo.getWallet(order.user);
   if (!wallet) throw new Error("Wallet not found");
 
- if (order.paymentStatus === "PAID"){
-    wallet.balance += order.totalAmount;
-
-    await WalletHistory.create({
-      user: order.user,
-      type: "credit",
-      amount: order.totalAmount,
-      subtotal: wallet.balance, 
-      description: `Refund for cancelled order ${order._id}`,
-    });
-
-    await wallet.save();
-
-    await userRepo.updateUserWalletFields(
-      order.user,
-      wallet.balance,
-      wallet.pending
-    );
+  // reduce pending first (credit order)
+  if (wallet.pending > 0) {
+    wallet.pending = Math.max(0, wallet.pending - order.totalAmount);
   }
 
+  // refund balance if paid
+  if (order.paymentStatus === "PAID") {
+    wallet.balance += order.totalAmount;
+  }
+
+  await WalletHistory.create({
+    user: order.user,
+    type: "credit",
+    amount: order.totalAmount,
+    subtotal: wallet.balance,
+    description: `Refund for cancelled order ${order._id}`,
+  });
+
+  await wallet.save();
+
+  await userRepo.updateUserWalletFields(
+    order.user,
+    wallet.balance,
+    wallet.pending
+  );
   const updatedOrder = await orderRepo.cancelOrderById(orderId);
 
   return {

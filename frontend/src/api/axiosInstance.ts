@@ -1,6 +1,6 @@
 // axiosInstance.ts
 import axios from "axios";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../components/admin/store/authStore";
 
 export const axiosInstance = axios.create({
   baseURL: "http://localhost:3002/api",

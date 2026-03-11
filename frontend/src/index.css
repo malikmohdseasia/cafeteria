@@ -68,3 +68,8 @@ button:focus-visible {
 } */
 
 @import "tailwindcss";
+
+@theme{
+  --font-playfair: 'Playfair Display';
+  --font-Poppins: 'Poppins'
+}

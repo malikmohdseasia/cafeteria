@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, KeyRound, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../store/authStore";
+import { useAuthStore } from "../admin/store/authStore";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import LoadingCircle from "../Pages/LoaderCircle";
+import LoadingCircle from "../admin/Pages/LoaderCircle";
 
 const OTP_VALIDITY_MINUTES = 5;
 

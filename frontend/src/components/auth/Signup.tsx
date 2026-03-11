@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { Mail, User } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuthStore } from "../../store/authStore"; 
+import { useAuthStore } from "../admin/store/authStore";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "./authValidation/authSchema";
+import LoadingCircle from "../admin/Pages/LoaderCircle";
 
 const Signup = () => {
   const auth = useAuthStore();
@@ -19,7 +20,7 @@ const Signup = () => {
     resolver: zodResolver(signupSchema),
   });
 
-  const onSubmit = async (data:any) => {
+  const onSubmit = async (data: any) => {
     try {
       const success = await auth.signup(data.name, data.email);
       if (success) {
@@ -93,9 +94,15 @@ const Signup = () => {
             disabled={isSubmitting || auth.isLoading}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="w-full py-3 rounded-xl font-semibold bg-linear-to-r from-pink-500 to-purple-600 text-white shadow-lg disabled:opacity-50"
+            className="w-full py-3 rounded-xl font-semibold bg-linear-to-r from-pink-500 to-purple-600 text-white shadow-lg disabled:opacity-50 flex items-center justify-center"
           >
-            {auth.isLoading || isSubmitting ? "Signing Up..." : "Sign Up"}
+            {auth.isLoading || isSubmitting ? (
+              <span className="flex items-center gap-2">
+                Signing Up... <LoadingCircle />
+              </span>
+            ) : (
+              "Sign Up"
+            )}
           </motion.button>
         </form>
 
